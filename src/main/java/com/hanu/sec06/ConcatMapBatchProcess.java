@@ -1,0 +1,43 @@
+package com.hanu.sec06;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.kafka.receiver.KafkaReceiver;
+import reactor.kafka.receiver.ReceiverOptions;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.regex.Pattern;
+@Slf4j
+public class ConcatMapBatchProcess {
+    public static void main(String[] args) {
+        var consumerConfig = Map.<String, Object>of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.GROUP_ID_CONFIG, "group-5",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "1"
+        );
+
+        var options = ReceiverOptions.create(consumerConfig)
+                .consumerProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "5")
+                .subscription(Pattern.compile("order.*"));
+        KafkaReceiver.create(options)
+                .receiveAutoAck()
+                .concatMap(ConcatMapBatchProcess::batchProcess)
+                .subscribe();
+
+    }
+    private static Mono<Void> batchProcess(Flux<ConsumerRecord<Object, Object>> flux) {
+        return flux.doFirst(() -> log.info("------------------------------"))
+                .doOnNext(r -> log.info("topic: {}, key: {}, value: {}", r.topic(), r.key(), r.value()))
+                .doOnNext(r -> r.headers().forEach(header -> log.info("HeaderKey: {}, HeaderValue: {}", header.key(), new String(header.value()))))
+                .then(Mono.delay(Duration.ofSeconds(1)))
+                .then();
+    }
+}

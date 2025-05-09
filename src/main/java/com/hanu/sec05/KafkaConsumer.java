@@ -1,0 +1,51 @@
+package com.hanu.sec05;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import reactor.kafka.receiver.KafkaReceiver;
+import reactor.kafka.receiver.ReceiverOptions;
+import reactor.kafka.receiver.ReceiverPartition;
+
+import java.util.Map;
+import java.util.regex.Pattern;
+
+public class KafkaConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaConsumer.class);
+
+    public static void startConsumer(String instanceId) {
+
+        var consumerConfig = Map.<String, Object>of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.GROUP_ID_CONFIG, "group-5",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId,
+                ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName() // it will assign the same partition to the same instance. meaning if one instance having only one partition it won't disturb if new instance coming. it will take the partition from the instance who is having more partitions allocations.
+        );
+
+        var options = ReceiverOptions.create(consumerConfig)
+                .addAssignListener(
+                        assigner -> {
+                            assigner.forEach(ReceiverPartition::position);
+                            assigner.forEach(receiverPartition -> receiverPartition.seek(receiverPartition.position() - 2)); // go back 2 records in all partitions assigned to the consumer
+                            assigner.stream()
+                                    .filter(rp -> rp.topicPartition().partition() == 2)
+                                    .findFirst()
+                                    .ifPresent(rp -> rp.seek(rp.position() - 5));
+                        })
+                .subscription(Pattern.compile("order.*"));
+        KafkaReceiver.create(options)
+                .receive()
+                .doOnNext(r -> log.info("topic: {}, partition: {} key: {}, value: {}", r.topic(), r.partition(), r.key(), r.value()))
+//                .doOnNext(r -> r.headers().forEach(header -> log.info("HeaderKey: {}, HeaderValue: {}", header.key(), new String(header.value()))))
+                .doOnNext(r -> r.receiverOffset().acknowledge())
+                .subscribe();
+
+    }
+
+}
