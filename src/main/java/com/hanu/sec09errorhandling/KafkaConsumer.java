@@ -32,7 +32,7 @@ public class KafkaConsumer {
 
     }
 
-    private static ReactiveDeadLetterTopicProducer<String, String> deadLetterTopicProducer(){
+    private static ReactiveDeadLetterTopicProducer<String, String> deadLetterTopicProducer() {
         var producerConfig = Map.<String, Object>of(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
@@ -46,7 +46,7 @@ public class KafkaConsumer {
         );
     }
 
-    private static KafkaReceiver<String, String> kafkaReceiver(){
+    private static KafkaReceiver<String, String> kafkaReceiver() {
         var consumerConfig = Map.<String, Object>of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
@@ -56,7 +56,7 @@ public class KafkaConsumer {
                 ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "1"
         );
         var options = ReceiverOptions.<String, String>create(consumerConfig)
-                                     .subscription(List.of("order-events", "order-events-dlt"));
+                .subscription(List.of("order-events", "order-events-dlt"));
         return KafkaReceiver.create(options);
     }
 

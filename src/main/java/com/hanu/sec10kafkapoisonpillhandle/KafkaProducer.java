@@ -26,7 +26,7 @@ public class KafkaProducer {
         var producerConfig = Map.<String, Object>of(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class // STARTING it produces String and then thought to send Integer type
         );
 
         var options = SenderOptions.<String, Integer>create(producerConfig);
