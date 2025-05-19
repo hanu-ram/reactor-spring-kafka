@@ -17,18 +17,32 @@ import java.time.Duration;
 class OrderEventProducerTest extends AbstractIT {
 
     @Test
-    void producerTest1() {
-        KafkaReceiver<String, OrderEvent> kafkaReceiver = createKafkaReceiver("order-events");
+    void producerTest() {
+        KafkaReceiver<String, OrderEvent> kafkaReceiver = createReceiver("order-events");
         Flux<ReceiverRecord<String, OrderEvent>> receiverRecordFlux = kafkaReceiver.receive()
                 .take(10)
                 .doOnNext(r -> log.info("key: {}, value: {}", r.key(), r.value()));
 
         StepVerifier.create(receiverRecordFlux)
-//                .assertNext(r -> Assertions.assertNotNull(r.value().orderDate()))
+                .assertNext(r -> Assertions.assertNotNull(r.value().orderDate()))
+//                .consumeNextWith(r -> Assertions.assertNotNull(r.value().orderId()))
+                .expectNextCount(8)
+                .verifyComplete();
+    }
+
+    @Test
+//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    void producerTest1(){
+        KafkaReceiver<String, OrderEvent> receiver = createReceiver("order-events");
+        var orderEvents = receiver.receive()
+                .take(10)
+                .doOnNext(r -> log.info("key: {}, value: {}", r.key(), r.value()));
+
+        StepVerifier.create(orderEvents)
                 .consumeNextWith(r -> Assertions.assertNotNull(r.value().orderId()))
                 .expectNextCount(9)
                 .expectComplete()
-                .verify(Duration.ofSeconds(12));
+                .verify(Duration.ofSeconds(10));
     }
 
 }

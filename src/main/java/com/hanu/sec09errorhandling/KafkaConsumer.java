@@ -1,4 +1,4 @@
-package com.hanu.sec09;
+package com.hanu.sec09errorhandling;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;

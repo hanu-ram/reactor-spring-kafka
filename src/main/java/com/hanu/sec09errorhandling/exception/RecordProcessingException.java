@@ -1,4 +1,4 @@
-package com.hanu.sec09.exception;
+package com.hanu.sec09errorhandling.exception;
 
 import reactor.kafka.receiver.ReceiverRecord;
 

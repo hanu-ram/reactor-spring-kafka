@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverRecord;
+import reactor.kafka.sender.SenderRecord;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,6 +35,6 @@ public class TransferEventConsumer {
     }
 
     public Runnable fail() {
-        return () -> {throw new IllegalStateException("Error caused during processing");};
+        return () -> {throw new RuntimeException("Error caused during processing");};
     }
 }

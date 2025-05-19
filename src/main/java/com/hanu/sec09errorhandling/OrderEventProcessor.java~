@@ -1,6 +1,6 @@
-package com.hanu.sec09errorhandling;
+package com.hanu.sec09;
 
-import com.hanu.sec09errorhandling.exception.RecordProcessingException;
+import com.hanu.sec09.exception.RecordProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

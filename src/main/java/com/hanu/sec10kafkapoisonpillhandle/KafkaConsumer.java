@@ -1,6 +1,5 @@
-package com.hanu.sec10;
+package com.hanu.sec10kafkapoisonpillhandle;
 
-import com.hanu.sec02.SubscriberImpl;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -38,15 +37,12 @@ public class KafkaConsumer {
         var options = ReceiverOptions.<String, Integer>create(consumerConfig)
                 .withValueDeserializer(errorHandlingDeserializer())
                 .subscription(Collections.singletonList("order-events"));
-        var subscriber = new SubscriberImpl<>();
         KafkaReceiver.create(options)
                 .receive()
                 .doOnNext(r -> log.info("topic: {}, key: {}, value: {}", r.topic(), r.key(), r.value()))
                 .doOnNext(r -> r.headers().forEach(header -> log.info("HeaderKey: {}, HeaderValue: {}", header.key(), new String(header.value()))))
                 .doOnNext(r -> r.receiverOffset().acknowledge())
-                .subscribe(subscriber);
-
-        subscriber.getSubscription().request(100);
+                .subscribe();
 
     }
 
